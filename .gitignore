@@ -1,0 +1,8 @@
+_output/
+testData/
+
+*.cfg
+*.yml
+
+shield
+Vagrantfile
