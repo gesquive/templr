@@ -4,5 +4,7 @@ testData/
 *.cfg
 *.yml
 
+!*.example.yml
+
 shield
 Vagrantfile

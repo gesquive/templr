@@ -1,0 +1,56 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# NOTE: These rules are just an example of common use cases. They are 
+#   incomplete in some instances. These are only examples and should not be 
+#   used without a proper review and editing. 
+# Never apply firewall rules you don't understand.
+
+{{$dnsServers := slice "google-public-dns-a.google.com" "google-public-dns-b.google.com" -}}
+# Allow DNS lookups (tcp, udp port 53) from {{ list $dnsServers }}
+{{ range $i := lookupHosts $dnsServers -}}
+-{{ .Type }} -A OUTPUT -p udp -d {{ ipfmt .Addr }} --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+-{{ .Type }} -A INPUT  -p udp -s {{ ipfmt .Addr }} --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+-{{ .Type }} -A OUTPUT -p tcp -d {{ ipfmt .Addr }} --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+-{{ .Type }} -A INPUT  -p tcp -s {{ ipfmt .Addr }} --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+{{ end }}
+
+{{$pkgServers := slice "security.ubuntu.com" "us.archive.ubuntu.com" -}}
+# Allow connection to package servers: {{ list $pkgServers }}
+{{ range $i := lookupHosts $pkgServers -}}
+-{{ .Type }} -A OUTPUT -p tcp -d {{ ipfmt .Addr }} -m multiport --dports 21,80,443  -m state --state NEW,ESTABLISHED -j ACCEPT
+{{ end }}
+
+{{$sshServers := slice "192.168.33.1" "192.168.1.10" -}}
+# Allow ssh access only from known sources: {{ list $sshServers }}
+{{ range $i := lookupHosts $sshServers -}}
+-{{ .Type }} -A INPUT  -p tcp --dport 22 -s {{ ipfmt .Addr }} -j ACCEPT
+{{ end }}
+
+{{$syslogServers := slice "logs.papertrailapp.com" -}}
+# Allow remote syslog
+{{ range $i := lookupHosts $syslogServers -}}
+-{{ .Type }} -A OUTPUT -d {{ ipfmt .Addr }} -m state --state NEW,ESTABLISHED -j ACCEPT
+{{ end }}
+
+{{$httpServers := slice "acme-v01.api.letsencrypt.org" "acme-v02.api.letsencrypt.org" "acme-v03.api.letsencrypt.org" -}}
+# Allow web access to specific servers: {{ list $httpServers }}
+{{ range $i := lookupHosts $httpServers -}}
+-{{ .Type }} -A OUTPUT -p tcp -d {{ ipfmt .Addr }} -m multiport --dports 80,443  -m state --state NEW,ESTABLISHED -j ACCEPT
+{{ end }}
+
+# Allow established in/out connections
+-A INPUT  -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Log before dropping
+-A INPUT  -j LOG --log-level 4 --log-prefix "IP INPUT drop: "
+-A INPUT  -j DROP
+
+-A OUTPUT -j LOG --log-level 4 --log-prefix "IP OUTPUT drop: "
+-A OUTPUT -j DROP
+
+COMMIT
