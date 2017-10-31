@@ -81,7 +81,7 @@ clean: ## Clean the directory tree
 build-dist: gox
 	gox -verbose \
 	-ldflags "-X main.version=${VERSION} -X main.dirty=${GIT_DIRTY}" \
-	-os="linux darwin windows" \
+	-os="linux" \
 	-arch="amd64 386" \
 	-output="dist/{{.OS}}-{{.Arch}}/{{.Dir}}" .
 
