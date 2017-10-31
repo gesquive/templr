@@ -1,0 +1,22 @@
+package: github.com/gesquive/shield
+import:
+- package: github.com/codeskyblue/go-sh
+  version: ~0.2.0
+- package: github.com/gesquive/cli
+  version: ~0.2.0
+- package: github.com/mitchellh/go-homedir
+- package: github.com/pkg/errors
+  version: ~0.8.0
+- package: github.com/sirupsen/logrus
+  version: ~1.0.3
+- package: github.com/spf13/cobra
+  version: ~0.0.1
+- package: github.com/spf13/viper
+  version: ~1.0.0
+- package: github.com/x-cray/logrus-prefixed-formatter
+  version: ~0.5.2
+testImport:
+- package: github.com/stretchr/testify
+  version: ~1.1.4
+  subpackages:
+  - assert
