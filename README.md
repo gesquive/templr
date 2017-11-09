@@ -42,6 +42,9 @@ If you are planning to run this app as a cron job, it is recommended that you pl
 ### Environment Variables
 Optionally, instead of using a config file you can specify config entries as environment variables. Use the prefix "SHIELD_" in front of the uppercased variable name. For example, the config variable `ipv4-only` would be the environment variable `SHIELD_IPV4_ONLY`.
 
+### Firewall Rules
+`shield` uses the golang [text template engine](https://golang.org/pkg/text/template/) to generate the final ruleset. In addition to the standard [functions](https://golang.org/pkg/text/template/#hdr-Functions), `shield` has a number of helper functions designed to ease the creation of iptable rules. Please refer to the [helper documentation](https://gesquive.github.io/shield/) for a list of helper functions available. An example rule template can be found at [`pkg/rules.example.yml`](https://github.com/gesquive/shield/blob/master/pkg/rules.example.yml).
+
 ### Cron Job
 This application was developed to run from a scheduler such as cron.
 

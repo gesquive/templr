@@ -9,6 +9,7 @@ testData/
 
 !*.example.yml
 !.travis.yml
+!_config.yml
 
 shield
 Vagrantfile

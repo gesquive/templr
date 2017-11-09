@@ -7,25 +7,25 @@ import (
 )
 
 func TestLookupIPv4Host(t *testing.T) {
-	hosts, err := lookupIPv4Host("172.217.0.14")
+	hosts, err := LookupIPv4Host("172.217.0.14")
 	assert.NoError(t, err, "unexpected error")
 	assert.Len(t, hosts, 1, "unexpected results")
 }
 
 func TestLookupIPv4Host_WithIPv6(t *testing.T) {
-	hosts, err := lookupIPv4Host("2607:f8b0:4009:813::200e")
+	hosts, err := LookupIPv4Host("2607:f8b0:4009:813::200e")
 	assert.NoError(t, err, "unexpected error")
 	assert.Len(t, hosts, 0, "unexpected results")
 }
 
 func TestLookupIPv6Host(t *testing.T) {
-	hosts, err := lookupIPv6Host("2607:f8b0:4009:813::200e")
+	hosts, err := LookupIPv6Host("2607:f8b0:4009:813::200e")
 	assert.NoError(t, err, "unexpected error")
 	assert.Len(t, hosts, 1, "unexpected results")
 }
 
 func TestLookupIPv6Host_WithIPv4(t *testing.T) {
-	hosts, err := lookupIPv6Host("172.217.0.14")
+	hosts, err := LookupIPv6Host("172.217.0.14")
 	assert.NoError(t, err, "unexpected error")
 	assert.Len(t, hosts, 0, "unexpected results")
 }

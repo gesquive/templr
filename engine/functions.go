@@ -6,6 +6,7 @@ import (
 	"text/template"
 )
 
+// HostInfo contains the type, address, and name of a host
 type HostInfo struct {
 	Type string
 	Addr string
@@ -14,13 +15,13 @@ type HostInfo struct {
 
 func NetFuncs() template.FuncMap {
 	funcMap := template.FuncMap{
-		"slice":           slice,
-		"list":            list,
-		"rpad":            rightPad,
-		"ipfmt":           ipFmt,
-		"lookupHosts":     lookupHosts,
-		"lookupIPv4Host":  lookupIPv4Host,
-		"lookupIPv6Host":  lookupIPv6Host,
+		"slice":           Slice,
+		"list":            List,
+		"rpad":            RPad,
+		"ipfmt":           IPFmt,
+		"lookupHosts":     LookupHosts,
+		"lookupIPv4Host":  LookupIPv4Host,
+		"lookupIPv6Host":  LookupIPv6Host,
 		"isValidIPv4":     IsValidIPv4,
 		"isValidIPv6":     IsValidIPv6,
 		"isValidIPv4Addr": IsValidIPv4Addr,
@@ -32,11 +33,13 @@ func NetFuncs() template.FuncMap {
 	return funcMap
 }
 
-func slice(args ...interface{}) []interface{} {
+// Slice returns the given arguments as an iterable list
+func Slice(args ...interface{}) []interface{} {
 	return args
 }
 
-func list(arr []interface{}) string {
+// List returns a comma delimeted list of the given array
+func List(arr []interface{}) string {
 	items := []string{}
 	for _, i := range arr {
 		items = append(items, i.(string))
@@ -45,20 +48,22 @@ func list(arr []interface{}) string {
 	return strings.Join(items, ", ")
 }
 
-func ipFmt(addr string) string {
+// IPFmt pads an IP address string based on the type of IP address it is
+func IPFmt(addr string) string {
 	if IsValidIPv4Addr(addr) {
-		return rightPad(15, addr)
+		return RPad(15, addr)
 	} else if IsValidIPv6Addr(addr) {
-		return rightPad(23, addr)
+		return RPad(23, addr)
 	} else if IsValidIPv4CIDR(addr) {
-		return rightPad(19, addr)
+		return RPad(19, addr)
 	} else if IsValidIPv6CIDR(addr) {
-		return rightPad(26, addr)
+		return RPad(26, addr)
 	}
 	return addr
 }
 
-func rightPad(size int, str interface{}) string {
+// RPad pads spaces onto the right side of the given string
+func RPad(size int, str interface{}) string {
 	strSize := len(str.(string))
 	padSize := 1 + size - strSize
 	if padSize <= 0 {
@@ -69,7 +74,8 @@ func rightPad(size int, str interface{}) string {
 	return result[:size]
 }
 
-func lookupHosts(hosts []interface{}) []HostInfo {
+// LookupHosts returns a list of HostInfo objects
+func LookupHosts(hosts []interface{}) []HostInfo {
 	host4Info := []HostInfo{}
 	host6Info := []HostInfo{}
 	for _, host := range hosts {
@@ -94,7 +100,8 @@ func lookupHost(host interface{}) ([]string, error) {
 	return addrs, nil
 }
 
-func lookupIPv4Host(host string) ([]string, error) {
+// LookupIPv4Host returns a list of the given host's IPv4 addresses
+func LookupIPv4Host(host string) ([]string, error) {
 	addrs, err := net.LookupHost(host)
 	if err != nil {
 		return []string{}, err
@@ -110,7 +117,8 @@ func lookupIPv4Host(host string) ([]string, error) {
 	return ipv4Addrs, err
 }
 
-func lookupIPv6Host(host string) ([]string, error) {
+// LookupIPv6Host returns a list of the given host's IPv6 addresses
+func LookupIPv6Host(host string) ([]string, error) {
 	addrs, err := net.LookupHost(host)
 	if err != nil {
 		return []string{}, err
