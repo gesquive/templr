@@ -188,6 +188,11 @@ func getLogFilePath(defaultPath string) (logPath string) {
 	return
 }
 
+func isRootUser() bool {
+	uid := os.Geteuid()
+	return uid == 0
+}
+
 func loadRules() {
 	rulePath := viper.GetString("rules")
 	fmt.Printf("rules=%s\n", rulePath)
