@@ -1,8 +1,9 @@
 package iptables
 
 import (
-	"os"
 	"os/exec"
+
+	"github.com/pkg/errors"
 )
 
 var ip4tables string
@@ -29,46 +30,53 @@ func SetIP6TablesRestorePath(path string) {
 	ip6tablesRestore = path
 }
 
-func findIP4Tables() {
-	if _, err := os.Stat(ip4tables); !os.IsNotExist(err) {
-		return // then our path already exists, we have nothing to find
+func Find() error {
+	if err := FindIPv4(); err != nil {
+		return err
 	}
-	path, err := exec.LookPath("iptables")
-	if err != nil {
-		ip4tables = "iptables"
+	if err := FindIPv6(); err != nil {
+		return err
 	}
-	ip4tables = path
+	return nil
 }
 
-func findIP6Tables() {
-	if _, err := os.Stat(ip6tables); !os.IsNotExist(err) {
-		return // then our path already exists, we have nothing to find
+func FindIPv4() error {
+	var err error
+	if ip4tables, err = findUsableExe("iptables"); err != nil {
+		return err
 	}
-	path, err := exec.LookPath("ip6tables")
-	if err != nil {
-		ip6tables = "ip6tables"
+	if ip4tablesRestore, err = findUsableExe("iptables-restore"); err != nil {
+		return err
 	}
-	ip6tables = path
+	return nil
 }
 
-func findIP4TablesRestore() {
-	if _, err := os.Stat(ip4tablesRestore); !os.IsNotExist(err) {
-		return // then our path already exists, we have nothing to find
+func FindIPv6() error {
+	var err error
+	if ip6tables, err = findUsableExe("ip6tables"); err != nil {
+		return err
 	}
-	path, err := exec.LookPath("iptables-restore")
-	if err != nil {
-		ip4tablesRestore = "iptables-restore"
+	if ip6tablesRestore, err = findUsableExe("ip6tables-restore"); err != nil {
+		return err
 	}
-	ip4tablesRestore = path
+	return nil
 }
 
-func findIP6TablesRestore() {
-	if _, err := os.Stat(ip6tablesRestore); !os.IsNotExist(err) {
-		return // then our path already exists, we have nothing to find
-	}
-	path, err := exec.LookPath("ip6tables-restore")
+func findUsableExe(name string) (string, error) {
+	path, err := exec.LookPath(name)
 	if err != nil {
-		ip6tablesRestore = "ip6tables-restore"
+		return "", err
 	}
-	ip6tablesRestore = path
+	if !isExeUsable(path) {
+		return "", errors.Errorf("Path is not executable %s", path)
+	}
+	return path, nil
+}
+
+func isExeUsable(path string) bool {
+	err := exec.Command("test", "-x", path).Run()
+	if err != nil {
+		return false
+	}
+	return true
 }

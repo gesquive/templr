@@ -160,7 +160,22 @@ func preRun(cmd *cobra.Command, args []string) {
 		runIPv4 = false
 		runIPv6 = true
 	}
-	//TODO: check if we have permissions to change iptables
+
+	if err := iptables.FindIPv4(); runIPv4 && err != nil {
+		cli.Error("%s", err)
+		cli.Error("Make sure iptables is installed")
+		os.Exit(6)
+	}
+	if err := iptables.FindIPv6(); runIPv6 && err != nil {
+		cli.Error("%s", err)
+		cli.Error("Make sure ip6tables is installed")
+		os.Exit(6)
+	}
+
+	if !isRootUser() {
+		cli.Error("Modifying iptables requires root access.")
+		os.Exit(5)
+	}
 }
 
 func getLogFilePath(defaultPath string) (logPath string) {

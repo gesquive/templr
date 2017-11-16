@@ -14,7 +14,6 @@ func Exists() bool {
 }
 
 func LoadIPv4Rules(rules []byte) error {
-	findIP4TablesRestore()
 	rulesFile, err := getTempFile()
 	if err != nil {
 		return err
@@ -35,7 +34,6 @@ func LoadIPv4Rules(rules []byte) error {
 }
 
 func LoadIPv6Rules(rules []byte) error {
-	findIP6TablesRestore()
 	rulesFile, err := getTempFile()
 	if err != nil {
 		return err
@@ -56,7 +54,6 @@ func LoadIPv6Rules(rules []byte) error {
 }
 
 func ClearIPv4Rules() error {
-	findIP4Tables()
 	// First set all chains to accept in case something funky happens
 	cleanRules := []byte(`
 *filter
@@ -83,7 +80,6 @@ COMMIT
 }
 
 func ClearIPv6Rules() error {
-	findIP6Tables()
 	// First set all chains to accept in case something funky happens
 	cleanRules := []byte(`
 *filter
@@ -110,7 +106,6 @@ COMMIT
 }
 
 func GetIPv4Summary() string {
-	findIP4Tables()
 	out, err := sh.Command(ip4tables, "-L", "-n").Output()
 	if err != nil {
 		return ""
@@ -119,7 +114,6 @@ func GetIPv4Summary() string {
 }
 
 func GetIPv6Summary() string {
-	findIP6Tables()
 	out, err := sh.Command(ip6tables, "-L", "-n").Output()
 	if err != nil {
 		return ""
