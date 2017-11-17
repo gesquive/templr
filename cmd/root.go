@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"time"
@@ -173,7 +174,7 @@ func preRun(cmd *cobra.Command, args []string) {
 	}
 
 	if !isRootUser() {
-		cli.Error("Modifying iptables requires root access.")
+		cli.Error("Modifying iptables requires root access")
 		os.Exit(5)
 	}
 }
@@ -193,6 +194,14 @@ func isRootUser() bool {
 	return uid == 0
 }
 
+func isDNSWorking() bool {
+	addrs, err := net.LookupHost("github.com")
+	if err != nil {
+		return false
+	}
+	return len(addrs) != 0
+}
+
 func loadRules() {
 	rulePath := viper.GetString("rules")
 	fmt.Printf("rules=%s\n", rulePath)
@@ -201,7 +210,11 @@ func loadRules() {
 		os.Exit(2)
 	}
 
-	//TODO: Check that DNS works
+	if !isDNSWorking() {
+		cli.Error("DNS is not resolving")
+		os.Exit(4)
+	}
+
 	rules, err := engine.NewRuleset(rulePath)
 	if err != nil {
 		log.Error("%v", err)
