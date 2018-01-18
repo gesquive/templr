@@ -221,7 +221,7 @@ func loadRules() {
 		os.Exit(2)
 	}
 
-	b, err := rules.GenerateRules(displayVersion, []string{})
+	data, err := rules.GenerateRules(displayVersion)
 	if err != nil {
 		log.Error("%v", err)
 		os.Exit(2)
@@ -229,7 +229,7 @@ func loadRules() {
 
 	if runIPv4 {
 		cli.Info("Applying IPv4 firewall rules")
-		err := iptables.LoadIPv4Rules(b)
+		err := iptables.LoadIPv4Rules(data)
 		if err != nil {
 			log.Error("%v", err)
 			os.Exit(10)
@@ -238,7 +238,7 @@ func loadRules() {
 
 	if runIPv6 {
 		cli.Info("Applying IPv6 firewall rules")
-		err := iptables.LoadIPv6Rules(b)
+		err := iptables.LoadIPv6Rules(data)
 		if err != nil {
 			log.Error("%v", err)
 			os.Exit(10)

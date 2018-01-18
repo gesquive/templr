@@ -42,7 +42,7 @@ func runSave(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 
-	b, err := rules.GenerateRules(displayVersion, []string{})
+	b, err := rules.GenerateRules(displayVersion)
 	if err != nil {
 		cli.Error("%v", err)
 		os.Exit(2)
