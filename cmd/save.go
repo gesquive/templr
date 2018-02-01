@@ -24,13 +24,13 @@ func init() {
 	// #viperbug
 	// saveCmd.Flags().StringP("rules", "r", "",
 	// 	"The templated firewall rules")
-	saveCmd.Flags().StringP("output", "o", "-",
+	saveCmd.Flags().StringSliceP("output", "o", []string{"-"},
 		"Output location for generated iptable rules, use '-' for stdout")
 
 	// viper.BindPFlag("rules", saveCmd.Flags().Lookup("rules"))
 	viper.BindPFlag("output", saveCmd.Flags().Lookup("output"))
 
-	viper.SetDefault("output", "-")
+	viper.SetDefault("output", []string{"-"})
 }
 
 func runSave(cmd *cobra.Command, args []string) {
@@ -48,18 +48,21 @@ func runSave(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 
-	output := viper.GetString("output")
-	var pipe *os.File
-	if output == "-" {
-		pipe = os.Stdout
-	} else {
-		var err error
-		pipe, err = os.OpenFile(output, os.O_RDWR|os.O_CREATE, 0755)
-		if err != nil {
-			cli.Error("%v", err)
-			os.Exit(2)
+	output := viper.GetStringSlice("output")
+	cli.Info("output: %v", output)
+	for _, dest := range output {
+		var pipe *os.File
+		if dest == "-" {
+			pipe = os.Stdout
+		} else {
+			var err error
+			pipe, err = os.OpenFile(dest, os.O_RDWR|os.O_CREATE, 0755)
+			if err != nil {
+				cli.Error("%v", err)
+				os.Exit(2)
+			}
+			defer pipe.Close()
 		}
-		defer pipe.Close()
+		pipe.Write(b)
 	}
-	pipe.Write(b)
 }
