@@ -42,7 +42,6 @@ func (r *RuleSet) GenerateRules(appVersion string) ([]byte, error) {
 
 	var msgBuffer bytes.Buffer
 	msgBuffer.WriteString(header)
-	fmt.Printf("vars: %v", r.vars)
 	err := r.template.Execute(&msgBuffer, r.vars)
 	if err != nil {
 		return nil, errors.Wrapf(err, "template error")
