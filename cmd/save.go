@@ -49,7 +49,6 @@ func runSave(cmd *cobra.Command, args []string) {
 	}
 
 	output := viper.GetStringSlice("output")
-	cli.Info("output: %v", output)
 	for _, dest := range output {
 		var pipe *os.File
 		if dest == "-" {
