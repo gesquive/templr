@@ -11,9 +11,6 @@ var ip6tables string
 var ip4tablesRestore string
 var ip6tablesRestore string
 
-const rulesV4Path = "/etc/iptables/rules.v4"
-const rulesV6Path = "/etc/iptables/rules.v6"
-
 func SetIP4TablesPath(path string) {
 	ip4tables = path
 }

@@ -204,7 +204,6 @@ func isDNSWorking() bool {
 
 func loadRules() {
 	rulePath := viper.GetString("rules")
-	fmt.Printf("rules=%s\n", rulePath)
 	if len(rulePath) == 0 {
 		cli.Error("No rules specified")
 		os.Exit(2)
@@ -228,7 +227,7 @@ func loadRules() {
 	}
 
 	if runIPv4 {
-		cli.Info("Applying IPv4 firewall rules")
+		log.Info("Applying IPv4 firewall rules")
 		err := iptables.LoadIPv4Rules(data)
 		if err != nil {
 			log.Error("%v", err)
@@ -237,7 +236,7 @@ func loadRules() {
 	}
 
 	if runIPv6 {
-		cli.Info("Applying IPv6 firewall rules")
+		log.Info("Applying IPv6 firewall rules")
 		err := iptables.LoadIPv6Rules(data)
 		if err != nil {
 			log.Error("%v", err)
