@@ -11,6 +11,9 @@ var ip6tables string
 var ip4tablesRestore string
 var ip6tablesRestore string
 
+const ip4RulesPersistPath = "/etc/iptables/rules.v4"
+const ip6RulesPersistPath = "/etc/iptables/rules.v6"
+
 func SetIP4TablesPath(path string) {
 	ip4tables = path
 }

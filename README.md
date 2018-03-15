@@ -83,6 +83,7 @@ Flags:
   -4, --ipv4-only         Apply command to IPv4 rules only.
   -6, --ipv6-only         Apply command to IPv6 rules only.
   -l, --log-file string   Path to log file
+  -p, --persist           Save the firewall configuration to netfilter-persistent
   -r, --rules string      The templated firewall rules
   -V, --version           Show the version and exit
 ```

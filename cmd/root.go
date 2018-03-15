@@ -26,6 +26,7 @@ var showVersion bool
 
 var runIPv4 bool
 var runIPv6 bool
+var persist bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -60,6 +61,8 @@ func init() {
 		"Apply command to IPv4 rules only.")
 	RootCmd.PersistentFlags().BoolP("ipv6-only", "6", false,
 		"Apply command to IPv6 rules only.")
+	RootCmd.PersistentFlags().BoolP("persist", "p", false,
+		"Save the firewall configuration to netfilter-persistent")
 
 	// This is a workaround for https://github.com/spf13/viper/issues/233
 	//TODO: remove this once bug is fixed #viperbug
@@ -78,10 +81,12 @@ func init() {
 
 	viper.BindEnv("ipv4-only")
 	viper.BindEnv("ipv6-only")
+	viper.BindEnv("persist")
 	viper.BindEnv("rules")
 
 	viper.BindPFlag("ipv4-only", RootCmd.PersistentFlags().Lookup("ipv4-only"))
 	viper.BindPFlag("ipv6-only", RootCmd.PersistentFlags().Lookup("ipv6-only"))
+	viper.BindPFlag("persist", RootCmd.PersistentFlags().Lookup("persist"))
 	viper.BindPFlag("rules", RootCmd.PersistentFlags().Lookup("rules"))
 }
 
@@ -147,7 +152,10 @@ func preRun(cmd *cobra.Command, args []string) {
 		cli.Info(displayVersion)
 		os.Exit(0)
 	}
-	cli.Debug("Running with debug turned on")
+	log.Debug("Running with debug turned on")
+
+	persist = viper.GetBool("persist")
+	log.Debugf("config: persist=%t", persist)
 
 	ipv4Only := viper.GetBool("ipv4-only")
 	ipv6Only := viper.GetBool("ipv6-only")
@@ -161,6 +169,7 @@ func preRun(cmd *cobra.Command, args []string) {
 		runIPv4 = false
 		runIPv6 = true
 	}
+	log.Debugf("config: runIPv4=%t runIPv6=%t", runIPv4, runIPv6)
 
 	if err := iptables.FindIPv4(); runIPv4 && err != nil {
 		cli.Error("%s", err)
@@ -228,7 +237,7 @@ func loadRules() {
 
 	if runIPv4 {
 		log.Info("Applying IPv4 firewall rules")
-		err := iptables.LoadIPv4Rules(data)
+		err := iptables.LoadIPv4Rules(data, persist)
 		if err != nil {
 			log.Error("%v", err)
 			os.Exit(10)
@@ -237,7 +246,7 @@ func loadRules() {
 
 	if runIPv6 {
 		log.Info("Applying IPv6 firewall rules")
-		err := iptables.LoadIPv6Rules(data)
+		err := iptables.LoadIPv6Rules(data, persist)
 		if err != nil {
 			log.Error("%v", err)
 			os.Exit(10)
@@ -247,10 +256,10 @@ func loadRules() {
 
 func unloadRules() {
 	if runIPv4 {
-		iptables.ClearIPv4Rules()
+		iptables.ClearIPv4Rules(persist)
 	}
 
 	if runIPv6 {
-		iptables.ClearIPv6Rules()
+		iptables.ClearIPv6Rules(persist)
 	}
 }

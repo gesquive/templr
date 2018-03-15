@@ -6,6 +6,16 @@ import (
 	sh "github.com/codeskyblue/go-sh"
 )
 
+func getCleanupRules() []byte {
+	return []byte(`
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+COMMIT
+`)
+}
+
 func Exists() bool {
 	if _, err := os.Stat(ip4tables); !os.IsNotExist(err) {
 		return true
@@ -13,7 +23,7 @@ func Exists() bool {
 	return false
 }
 
-func LoadIPv4Rules(rules []byte) error {
+func LoadIPv4Rules(rules []byte, persist bool) error {
 	rulesFile, err := getTempFile()
 	if err != nil {
 		return err
@@ -30,10 +40,17 @@ func LoadIPv4Rules(rules []byte) error {
 		return err
 	}
 
+	if persist {
+		err = persistIPv4Rules(rules)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func LoadIPv6Rules(rules []byte) error {
+func LoadIPv6Rules(rules []byte, persist bool) error {
 	rulesFile, err := getTempFile()
 	if err != nil {
 		return err
@@ -50,20 +67,36 @@ func LoadIPv6Rules(rules []byte) error {
 		return err
 	}
 
+	if persist {
+		err = persistIPv6Rules(rules)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func ClearIPv4Rules() error {
-	// First set all chains to accept in case something funky happens
-	cleanRules := []byte(`
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-COMMIT
-`)
+func persistIPv4Rules(rules []byte) error {
+	err := writeFile(ip4RulesPersistPath, rules)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-	err := LoadIPv4Rules(cleanRules)
+func persistIPv6Rules(rules []byte) error {
+	err := writeFile(ip6RulesPersistPath, rules)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ClearIPv4Rules(persist bool) error {
+	// First set all chains to accept in case something funky happens
+	cleanRules := getCleanupRules()
+	err := LoadIPv4Rules(cleanRules, persist)
 	if err != nil {
 		return err
 	}
@@ -79,17 +112,10 @@ COMMIT
 	return nil
 }
 
-func ClearIPv6Rules() error {
+func ClearIPv6Rules(persist bool) error {
 	// First set all chains to accept in case something funky happens
-	cleanRules := []byte(`
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-COMMIT
-`)
-
-	err := LoadIPv6Rules(cleanRules)
+	cleanRules := getCleanupRules()
+	err := LoadIPv6Rules(cleanRules, persist)
 	if err != nil {
 		return err
 	}
