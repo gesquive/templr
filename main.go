@@ -6,7 +6,7 @@ import (
 	"github.com/gesquive/shield/cmd"
 )
 
-var version = "v0.7.2-git"
+var version = "v0.7.3-git"
 var dirty = ""
 
 func main() {
