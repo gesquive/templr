@@ -127,7 +127,6 @@ func preRun(cmd *cobra.Command, args []string) {
 	}
 
 	logFilePath := getLogFilePath(viper.GetString("log_file"))
-	log.Debugf("config: log_file=%s", logFilePath)
 	if len(logFilePath) == 0 {
 		log.SetFormatter(&log.TextFormatter{
 			DisableTimestamp: true,
@@ -142,10 +141,9 @@ func preRun(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("error opening log file=%v", err)
 		}
-		defer logFile.Close()
 		log.SetOutput(logFile)
 	}
-
+	log.Debugf("config: log_file=%s", logFilePath)
 	log.Debugf("config: file=%s", viper.ConfigFileUsed())
 
 	if showVersion {
