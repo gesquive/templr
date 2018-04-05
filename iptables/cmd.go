@@ -132,7 +132,7 @@ func ClearIPv6Rules(persist bool) error {
 }
 
 func GetIPv4Summary() string {
-	out, err := sh.Command(ip4tables, "-L", "-n").Output()
+	out, err := sh.Command(ip4tables, "-L", "-v", "-n").Output()
 	if err != nil {
 		return ""
 	}
@@ -140,7 +140,7 @@ func GetIPv4Summary() string {
 }
 
 func GetIPv6Summary() string {
-	out, err := sh.Command(ip6tables, "-L", "-n").Output()
+	out, err := sh.Command(ip6tables, "-L", "-v", "-n").Output()
 	if err != nil {
 		return ""
 	}
