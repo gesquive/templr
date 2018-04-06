@@ -23,7 +23,7 @@ func Exists() bool {
 	return false
 }
 
-func LoadIPv4Rules(rules []byte, persist bool) error {
+func LoadIPv4Rules(rules []byte, restoreCounters bool, persist bool) error {
 	rulesFile, err := getTempFile()
 	if err != nil {
 		return err
@@ -35,7 +35,12 @@ func LoadIPv4Rules(rules []byte, persist bool) error {
 		return err
 	}
 
-	err = sh.Command(ip4tablesRestore, rulesFile.Name()).Run()
+	counterFlag := ""
+	if restoreCounters {
+		counterFlag = "-c"
+	}
+
+	err = sh.Command(ip4tablesRestore, counterFlag, rulesFile.Name()).Run()
 	if err != nil {
 		return err
 	}
@@ -50,7 +55,7 @@ func LoadIPv4Rules(rules []byte, persist bool) error {
 	return nil
 }
 
-func LoadIPv6Rules(rules []byte, persist bool) error {
+func LoadIPv6Rules(rules []byte, restoreCounters bool, persist bool) error {
 	rulesFile, err := getTempFile()
 	if err != nil {
 		return err
@@ -62,7 +67,12 @@ func LoadIPv6Rules(rules []byte, persist bool) error {
 		return err
 	}
 
-	err = sh.Command(ip6tablesRestore, rulesFile.Name()).Run()
+	counterFlag := ""
+	if restoreCounters {
+		counterFlag = "-c"
+	}
+
+	err = sh.Command(ip6tablesRestore, counterFlag, rulesFile.Name()).Run()
 	if err != nil {
 		return err
 	}
@@ -96,7 +106,7 @@ func persistIPv6Rules(rules []byte) error {
 func ClearIPv4Rules(persist bool) error {
 	// First set all chains to accept in case something funky happens
 	cleanRules := getCleanupRules()
-	err := LoadIPv4Rules(cleanRules, persist)
+	err := LoadIPv4Rules(cleanRules, false, persist)
 	if err != nil {
 		return err
 	}
@@ -115,7 +125,7 @@ func ClearIPv4Rules(persist bool) error {
 func ClearIPv6Rules(persist bool) error {
 	// First set all chains to accept in case something funky happens
 	cleanRules := getCleanupRules()
-	err := LoadIPv6Rules(cleanRules, persist)
+	err := LoadIPv6Rules(cleanRules, false, persist)
 	if err != nil {
 		return err
 	}

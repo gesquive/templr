@@ -233,9 +233,12 @@ func loadRules() {
 		os.Exit(2)
 	}
 
+	// right now, don't see a reason to make this an option
+	restoreCounters := true
+
 	if runIPv4 {
 		log.Info("Applying IPv4 firewall rules")
-		err := iptables.LoadIPv4Rules(data, persist)
+		err := iptables.LoadIPv4Rules(data, restoreCounters, persist)
 		if err != nil {
 			log.Error("%v", err)
 			os.Exit(10)
@@ -244,7 +247,7 @@ func loadRules() {
 
 	if runIPv6 {
 		log.Info("Applying IPv6 firewall rules")
-		err := iptables.LoadIPv6Rules(data, persist)
+		err := iptables.LoadIPv6Rules(data, restoreCounters, persist)
 		if err != nil {
 			log.Error("%v", err)
 			os.Exit(10)
