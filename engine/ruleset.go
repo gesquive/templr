@@ -15,9 +15,13 @@ import (
 
 var Version string
 
+// DefaultMaxImportDepth is the number of import levels to allow by default
+const DefaultMaxImportDepth = 7
+
 type RuleSet struct {
-	template *template.Template
-	vars     map[string]interface{}
+	template       *template.Template
+	vars           map[string]interface{}
+	maxImportDepth uint
 }
 
 func NewRuleset(templatePath string) (*RuleSet, error) {
@@ -28,12 +32,20 @@ func NewRuleset(templatePath string) (*RuleSet, error) {
 		return nil, errors.Wrapf(err, "could not read template file")
 	}
 
-	rulesetBytes, vars, err := ruleset.extractVars(templateBytes)
+	ruleset.maxImportDepth = DefaultMaxImportDepth
+
+	expandedBytes, err := ruleset.expandImports(templateBytes, 0)
+
+	rulesetBytes, vars, err := ruleset.extractVars(expandedBytes)
 	ruleset.vars = vars
 
 	ruleset.template = template.Must(template.New("rules").Funcs(NetFuncs()).Parse(string(rulesetBytes)))
 
 	return ruleset, nil
+}
+
+func (r *RuleSet) SetImportDepth(newDepth uint) {
+	r.maxImportDepth = newDepth
 }
 
 func (r *RuleSet) GenerateRules(appVersion string) ([]byte, error) {
@@ -92,4 +104,44 @@ func (r *RuleSet) extractVars(ruleset []byte) ([]byte, map[string]interface{}, e
 	cleanRules := re.ReplaceAll(ruleset, []byte(""))
 	return cleanRules, vars, nil
 
+}
+
+func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
+	re := regexp.MustCompile("(?smU){\\@(.*)\\@}")
+	matches := re.FindAll(ruleset, -1)
+	if matches == nil {
+		return ruleset, nil
+	}
+
+	expandedRules := []byte("")
+
+	for _, match := range matches {
+		parts := re.FindSubmatch(match)
+		if len(parts) < 2 {
+			continue // there is no submatch
+		}
+		importPath := string(bytes.TrimSpace(parts[1]))
+
+		if depth < r.maxImportDepth {
+			if _, err := os.Stat(importPath); os.IsNotExist(err) {
+				return nil, errors.Wrap(err, "could not find import")
+			}
+			importBytes, err := ioutil.ReadFile(importPath)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not read import")
+			}
+
+			importRules, err := r.expandImports(importBytes, depth+1)
+			if err != nil {
+				return nil, err
+			}
+
+			expandedRules = bytes.Replace(ruleset, parts[0], importRules, 1)
+		} else {
+			// remove the import
+			expandedRules = bytes.Replace(ruleset, parts[0], []byte(""), 1)
+		}
+	}
+
+	return expandedRules, nil
 }
