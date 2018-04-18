@@ -9,6 +9,9 @@
 ##   used without a proper review and editing. 
 ## Never apply firewall rules you don't understand.
 
+{{/* comments formatted like this will be omitted from the final output */}}
+# More documentation can be found here: https://golang.org/pkg/text/template/
+
 {$ dnsServers: ["google-public-dns-a.google.com", "google-public-dns-b.google.com"] $}
 # Allow DNS lookups (tcp, udp port 53) from {{ list .dnsServers }}
 {{ range $i := lookupHosts .dnsServers -}}
@@ -46,11 +49,7 @@
 -A INPUT  -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 
-# Log before dropping
--A INPUT  -j LOG --log-level 4 --log-prefix "IP INPUT drop: "
--A INPUT  -j DROP
-
--A OUTPUT -j LOG --log-level 4 --log-prefix "IP OUTPUT drop: "
--A OUTPUT -j DROP
+# final logging rules, always set as last!
+{@ log_rules.example.yml @}
 
 COMMIT

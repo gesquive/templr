@@ -1,0 +1,6 @@
+# Log before dropping
+-A INPUT  -j LOG --log-level 4 --log-prefix "IP INPUT drop: "
+-A INPUT  -j DROP
+
+-A OUTPUT -j LOG --log-level 4 --log-prefix "IP OUTPUT drop: "
+-A OUTPUT -j DROP

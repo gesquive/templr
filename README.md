@@ -43,8 +43,16 @@ If you are planning to run this app as a cron job, it is recommended that you pl
 Optionally, instead of using a config file you can specify config entries as environment variables. Use the prefix "SHIELD_" in front of the uppercased variable name. For example, the config variable `ipv4-only` would be the environment variable `SHIELD_IPV4_ONLY`.
 
 ### Firewall Rules
-`shield` uses the golang [text template engine](https://golang.org/pkg/text/template/) to generate the final ruleset. In addition to the standard [functions](https://golang.org/pkg/text/template/#hdr-Functions), `shield` has a number of helper functions designed to ease the creation of iptable rules. Please refer to the [helper documentation](https://gesquive.github.io/shield/) for a list of helper functions available. 
+`shield` uses the golang [text template engine](https://golang.org/pkg/text/template/) to generate the final ruleset. In addition to the standard [functions](https://golang.org/pkg/text/template/#hdr-Functions), `shield` has a number of helper functions designed to ease the creation of iptable rules. Please refer to the [helper documentation](https://gesquive.github.io/shield/) for a list of helper functions available.
 
+## Imports
+Other rulesets can be imported by using the `{@ path @}` brackets, where the `path` can be either a full path or relative to the current ruleset path. A single path can be imported per set of brackets. For example:
+```yaml
+{@ path/to/file @}
+```
+This would result in the contents of `path/to/file` being imported inline into the current ruleset. There is a limit of 100 levels of imports allowed to prevent an infinite import loop.
+
+## Variables
 In addition, yaml variables can be defined from within a template by using the `{$ $}` brackets. Anything within the brackets will be parsed as yaml and passed to the template as variables. For example:
 ```yaml
 {$ dnsServers: ["google-public-dns-a.google.com", "google-public-dns-b.google.com"] $}
@@ -52,6 +60,10 @@ In addition, yaml variables can be defined from within a template by using the `
 The above code creates a `.dnsServers` variable that can be referenced from elsewhere in the document like so:
 ```yaml
 # Allow DNS lookups from {{ list .dnsServers }}
+```
+will print out:
+```yaml
+# Allow DNS lookups from google-public-dns-a.google.com, google-public-dns-b.google.com
 ```
 
 An example rule template can be found at [`pkg/rules.example.yml`](https://github.com/gesquive/shield/blob/master/pkg/rules.example.yml).
