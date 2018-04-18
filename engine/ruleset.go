@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"regexp"
 	"text/template"
 	"time"
@@ -16,11 +17,13 @@ import (
 var Version string
 
 // DefaultMaxImportDepth is the number of import levels to allow by default
-const DefaultMaxImportDepth = 7
+// Import depth prevents an infinite loop of imports
+const DefaultMaxImportDepth = 100
 
 type RuleSet struct {
 	template       *template.Template
 	vars           map[string]interface{}
+	templatePath   string
 	maxImportDepth uint
 }
 
@@ -31,7 +34,7 @@ func NewRuleset(templatePath string) (*RuleSet, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not read template file")
 	}
-
+	ruleset.templatePath = templatePath
 	ruleset.maxImportDepth = DefaultMaxImportDepth
 
 	expandedBytes, err := ruleset.expandImports(templateBytes, 0)
@@ -123,12 +126,9 @@ func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 		importPath := string(bytes.TrimSpace(parts[1]))
 
 		if depth < r.maxImportDepth {
-			if _, err := os.Stat(importPath); os.IsNotExist(err) {
-				return nil, errors.Wrap(err, "could not find import")
-			}
-			importBytes, err := ioutil.ReadFile(importPath)
+			importBytes, err := r.getImportFileBytes(importPath)
 			if err != nil {
-				return nil, errors.Wrap(err, "could not read import")
+				return nil, err
 			}
 
 			importRules, err := r.expandImports(importBytes, depth+1)
@@ -144,4 +144,28 @@ func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 	}
 
 	return expandedRules, nil
+}
+
+func (r RuleSet) getImportFileBytes(importPath string) ([]byte, error) {
+	templateDirPath := path.Dir(r.templatePath)
+	relativePath := path.Join(templateDirPath, importPath)
+
+	// first try a relative path
+	if _, err := os.Stat(relativePath); err == nil {
+		importBytes, err := ioutil.ReadFile(relativePath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not read import '%s'", relativePath)
+		}
+		return importBytes, nil
+	}
+	// second, try the full path
+	if _, err := os.Stat(importPath); err == nil {
+		importBytes, err := ioutil.ReadFile(importPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not read import '%s'", importPath)
+		}
+		return importBytes, nil
+	}
+
+	return nil, errors.Errorf("Could not find import '%s'", importPath)
 }

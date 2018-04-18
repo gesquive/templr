@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -107,10 +108,6 @@ func TestExpandMultiImport(t *testing.T) {
 
 func TestNoImport(t *testing.T) {
 	// setup
-	importFilePath, err := writeTempFile([]byte(`<contents of test_import>`))
-	assert.NoError(t, err, "test file write error")
-	defer os.Remove(importFilePath) // clean up
-
 	rules := []byte(`no imports to see here`)
 
 	ruleset := new(RuleSet)
@@ -120,6 +117,17 @@ func TestNoImport(t *testing.T) {
 	assert.NoError(t, err, "unexpected error")
 
 	assert.Equal(t, string(rules), string(expandedRules), "rules do not match")
+}
+func TestBadImport(t *testing.T) {
+	rules := []byte(`No import {@ nomanland @}`)
+
+	ruleset := new(RuleSet)
+	ruleset.SetImportDepth(3)
+	expandedRules, err := ruleset.expandImports(rules, 0)
+
+	assert.Error(t, err, "missing error")
+
+	assert.Equal(t, "", string(expandedRules), "rules do not match")
 }
 
 func TestMaxDepthImports(t *testing.T) {
@@ -137,6 +145,33 @@ func TestMaxDepthImports(t *testing.T) {
 
 	ruleset := new(RuleSet)
 	ruleset.SetImportDepth(1)
+	expandedRules, err := ruleset.expandImports(rules, 0)
+
+	assert.NoError(t, err, "unexpected error")
+
+	assert.NotEqual(t, string(rules), string(expandedRules), "no changes made")
+	assert.Equal(t, string(expectedRules), string(expandedRules), "rules do not match")
+}
+
+func TestRelativePath(t *testing.T) {
+	importFilePath, err := writeTempFile([]byte(`android two`))
+	assert.NoError(t, err, "test file write error")
+	defer os.Remove(importFilePath) // clean up
+
+	importFileName := path.Base(importFilePath)
+
+	rules := []byte(fmt.Sprintf(`android one
+		{@ %s @}`, importFileName))
+	rulesFilePath, err := writeTempFile(rules)
+	assert.NoError(t, err, "test file write error")
+	defer os.Remove(rulesFilePath) // clean up
+
+	expectedRules := []byte(`android one
+		android two`)
+
+	ruleset, err := NewRuleset(rulesFilePath)
+	ruleset.SetImportDepth(3)
+
 	expandedRules, err := ruleset.expandImports(rules, 0)
 
 	assert.NoError(t, err, "unexpected error")
