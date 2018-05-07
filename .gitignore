@@ -3,6 +3,7 @@ vendor/
 
 _output/
 testData/
+*.test
 
 *.cfg
 *.yml
