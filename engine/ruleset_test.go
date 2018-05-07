@@ -79,7 +79,7 @@ func TestExpandSingleImport(t *testing.T) {
 	assert.Equal(t, string(expectedRules), string(expandedRules), "rules do not match")
 }
 
-func TestExpandMultiImport(t *testing.T) {
+func TestExpandMultiLevelImport(t *testing.T) {
 	// setup
 	importLvl3FilePath, err := writeTempFile([]byte(`you are looking for...`))
 	assert.NoError(t, err, "test file write error")
@@ -92,6 +92,33 @@ func TestExpandMultiImport(t *testing.T) {
 
 	rules := []byte(fmt.Sprintf(`These are not
 		{@ %s @}`, importLvl2FilePath))
+	expectedRules := []byte(`These are not
+		the imports
+		you are looking for...`)
+
+	ruleset := new(RuleSet)
+	ruleset.SetImportDepth(3)
+	expandedRules, err := ruleset.expandImports(rules, 0)
+
+	assert.NoError(t, err, "unexpected error")
+
+	assert.NotEqual(t, string(rules), string(expandedRules), "no changes made")
+	assert.Equal(t, string(expectedRules), string(expandedRules), "rules do not match")
+}
+
+func TestExpandMultiImport(t *testing.T) {
+	// setup
+	import2FilePath, err := writeTempFile([]byte(`you are looking for...`))
+	assert.NoError(t, err, "test file write error")
+	defer os.Remove(import2FilePath) // clean up
+
+	import1FilePath, err := writeTempFile([]byte(`the imports`))
+	assert.NoError(t, err, "test file write error")
+	defer os.Remove(import1FilePath) // clean up
+
+	rules := []byte(fmt.Sprintf(`These are not
+		{@ %s @}
+		{@ %s @}`, import1FilePath, import2FilePath))
 	expectedRules := []byte(`These are not
 		the imports
 		you are looking for...`)

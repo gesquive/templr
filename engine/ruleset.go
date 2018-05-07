@@ -111,17 +111,20 @@ func (r *RuleSet) extractVars(ruleset []byte) ([]byte, map[string]interface{}, e
 
 func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 	re := regexp.MustCompile("(?smU){\\@(.*)\\@}")
-	matches := re.FindAll(ruleset, -1)
-	if matches == nil {
-		return ruleset, nil
-	}
 
 	expandedRules := []byte("")
-
-	for _, match := range matches {
+	match := []byte("no match")
+	expandedRules = append(expandedRules, ruleset...)
+	for len(match) > 0 {
+		match = re.Find(expandedRules)
+		if len(match) <= 0 {
+			continue
+		}
 		parts := re.FindSubmatch(match)
 		if len(parts) < 2 {
-			continue // there is no submatch
+			// matched the brackets, but we are missing the file path, remove the import
+			expandedRules = bytes.Replace(expandedRules, parts[0], []byte(""), 1)
+			continue
 		}
 		importPath := string(bytes.TrimSpace(parts[1]))
 
@@ -136,13 +139,12 @@ func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 				return nil, err
 			}
 
-			expandedRules = bytes.Replace(ruleset, parts[0], importRules, 1)
+			expandedRules = bytes.Replace(expandedRules, parts[0], importRules, 1)
 		} else {
-			// remove the import
-			expandedRules = bytes.Replace(ruleset, parts[0], []byte(""), 1)
+			// we are in too deep, remove the import
+			expandedRules = bytes.Replace(expandedRules, parts[0], []byte(""), 1)
 		}
 	}
-
 	return expandedRules, nil
 }
 
