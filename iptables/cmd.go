@@ -35,12 +35,13 @@ func LoadIPv4Rules(rules []byte, restoreCounters bool, persist bool) error {
 		return err
 	}
 
-	counterFlag := ""
+	var args []interface{}
 	if restoreCounters {
-		counterFlag = "-c"
+		args = append(args, "-c")
 	}
+	args = append(args, rulesFile.Name())
 
-	err = sh.Command(ip4tablesRestore, counterFlag, rulesFile.Name()).Run()
+	err = sh.Command(ip4tablesRestore, args...).Run()
 	if err != nil {
 		return err
 	}
@@ -67,12 +68,13 @@ func LoadIPv6Rules(rules []byte, restoreCounters bool, persist bool) error {
 		return err
 	}
 
-	counterFlag := ""
+	var args []interface{}
 	if restoreCounters {
-		counterFlag = "-c"
+		args = append(args, "-c")
 	}
+	args = append(args, rulesFile.Name())
 
-	err = sh.Command(ip6tablesRestore, counterFlag, rulesFile.Name()).Run()
+	err = sh.Command(ip6tablesRestore, args...).Run()
 	if err != nil {
 		return err
 	}
