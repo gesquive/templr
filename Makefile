@@ -47,10 +47,14 @@ help:
 	 awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: build
-build: ## Compile the project
+build: gox ## Compile the project
 	@echo "building ${OWNER} ${BIN_NAME} ${VERSION}"
 	@echo "GOPATH=${GOPATH}"
-	${GOCC} build -ldflags "-X main.version=${VERSION} -X main.dirty=${GIT_DIRTY}" -o ${BIN_NAME}
+	gox -verbose \
+	-ldflags "-X main.version=${VERSION} -X main.dirty=${GIT_DIRTY}" \
+	-os="linux" \
+	-arch="amd64" \
+	-output="shield" .
 
 .PHONY: install
 install: build ## Install the binary
