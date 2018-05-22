@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/gesquive/cli"
-	"github.com/gesquive/shield/iptables"
+	"github.com/gesquive/templr/iptables"
 	"github.com/spf13/cobra"
 )
 

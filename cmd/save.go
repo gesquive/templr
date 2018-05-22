@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/gesquive/cli"
-	"github.com/gesquive/shield/engine"
+	"github.com/gesquive/templr/engine"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

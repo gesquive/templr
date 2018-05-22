@@ -1,4 +1,4 @@
-package: github.com/gesquive/shield
+package: github.com/gesquive/templr
 import:
 - package: github.com/codeskyblue/go-sh
   version: ~0.2.0

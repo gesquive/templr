@@ -208,7 +208,7 @@ func TestRelativePath(t *testing.T) {
 }
 
 func writeTempFile(contents []byte) (name string, err error) {
-	fileObj, err := ioutil.TempFile(os.TempDir(), "shield-test")
+	fileObj, err := ioutil.TempFile(os.TempDir(), "templr-test")
 	if err != nil {
 		return "", errors.Wrapf(err, "could not open file to write")
 	}

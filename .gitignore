@@ -12,5 +12,5 @@ testData/
 !.travis.yml
 !_config.yml
 
-shield
+templr
 Vagrantfile

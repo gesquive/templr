@@ -10,13 +10,13 @@ GOCC := go
 VERSION := $(shell git describe --always --tags)
 
 # Binary name for bintray
-BIN_NAME=shield
+BIN_NAME=templr
 
 # Project owner for bintray
 OWNER=gesquive
 
 # Project name for bintray
-PROJECT_NAME=shield
+PROJECT_NAME=templr
 
 # Project url used for builds
 # examples: github.com, bitbucket.org
@@ -54,7 +54,7 @@ build: gox ## Compile the project
 	-ldflags "-X main.version=${VERSION} -X main.dirty=${GIT_DIRTY}" \
 	-os="linux" \
 	-arch="amd64" \
-	-output="shield" .
+	-output="${BIN_NAME}" .
 
 .PHONY: install
 install: build ## Install the binary

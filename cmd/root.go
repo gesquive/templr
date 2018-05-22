@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gesquive/cli"
-	"github.com/gesquive/shield/engine"
-	"github.com/gesquive/shield/iptables"
+	"github.com/gesquive/templr/engine"
+	"github.com/gesquive/templr/iptables"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -30,7 +30,7 @@ var persist bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:              "shield",
+	Use:              "templr",
 	Short:            "iptables firewall manager",
 	Long:             `Manage and update your iptables firewall rules`,
 	PersistentPreRun: preRun,
@@ -53,7 +53,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "",
-		"config file (default is $HOME/.config/shield.yml)")
+		"config file (default is $HOME/.config/templr.yml)")
 	RootCmd.PersistentFlags().StringP("log-file", "l", "",
 		"Path to log file")
 
@@ -76,7 +76,7 @@ func init() {
 
 	RootCmd.PersistentFlags().MarkHidden("debug")
 
-	viper.SetEnvPrefix("shield")
+	viper.SetEnvPrefix("templr")
 	viper.AutomaticEnv()
 
 	viper.BindEnv("ipv4-only")
@@ -102,12 +102,12 @@ func initConfig() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		homeConfig := path.Join(home, ".config/shield")
+		homeConfig := path.Join(home, ".config/templr")
 
 		viper.SetConfigName("config")   // name of config file (without extension)
 		viper.AddConfigPath(".")        // adding current directory as first search path
 		viper.AddConfigPath(homeConfig) // adding home directory as next search path
-		viper.AddConfigPath("/etc/shield")
+		viper.AddConfigPath("/etc/templr")
 
 	}
 
@@ -189,7 +189,7 @@ func preRun(cmd *cobra.Command, args []string) {
 func getLogFilePath(defaultPath string) (logPath string) {
 	fi, err := os.Stat(defaultPath)
 	if err == nil && fi.IsDir() {
-		logPath = path.Join(defaultPath, "shield.log")
+		logPath = path.Join(defaultPath, "templr.log")
 	} else {
 		logPath = defaultPath
 	}

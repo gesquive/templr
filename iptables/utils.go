@@ -23,7 +23,7 @@ func writeFile(filePath string, contents []byte) error {
 }
 
 func getTempFile() (*os.File, error) {
-	file, err := ioutil.TempFile(os.TempDir(), "shield")
+	file, err := ioutil.TempFile(os.TempDir(), "templr")
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 # Rule Template Helper Functions
 
-`shield` has a number of string and networking helper functions that can be used in the rule templates. An example config can be found [here](https://github.com/gesquive/shield/blob/master/pkg/rules.example.yml).
+`templr` has a number of string and networking helper functions that can be used in the rule templates. An example config can be found [here](https://github.com/gesquive/templr/blob/master/pkg/rules.example.yml).
 
 ## slice
 `slice` returns the given arguments as an iterable list:
@@ -32,7 +32,7 @@ ipfmt "8.8.8.8"
 The above produces "`8.8.8.8`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
 
 ## lookupHosts
-`lookupHosts` returns a list of [HostInfo](https://godoc.org/github.com/gesquive/shield/engine#HostInfo) objects
+`lookupHosts` returns a list of [HostInfo](https://godoc.org/github.com/gesquive/templr/engine#HostInfo) objects
 ```
 lookupHosts $hostList
 ```
