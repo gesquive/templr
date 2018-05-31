@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"text/template"
 	"time"
 
@@ -163,19 +164,19 @@ func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 	return expandedRules, nil
 }
 
-func (r RuleSet) getFilePath(importPath string) (string, error) {
+func (r RuleSet) searchForFiles(importPath string) []string {
 	templateDirPath := path.Dir(r.templatePath)
 	relativePath := path.Join(templateDirPath, importPath)
 
 	// First try a relative path
-	if _, err := os.Stat(relativePath); err == nil {
-		return relativePath, nil
+	if relList, err := filepath.Glob(relativePath); err == nil && len(relList) > 0 {
+		return relList
 	}
-	// Second, try the full path
-	if _, err := os.Stat(importPath); err == nil {
-		return importPath, nil
+	// Second, try the absolute path
+	if absList, err := filepath.Glob(importPath); err == nil && len(absList) > 0 {
+		return absList
 	}
-	return "", errors.Errorf("Could not find import path '%s'", importPath)
+	return []string{}
 }
 
 func (r RuleSet) isDir(filePath string) bool {
@@ -187,26 +188,16 @@ func (r RuleSet) isDir(filePath string) bool {
 }
 
 func (r RuleSet) getFileList(importPath string) ([]string, error) {
-	filePath, err := r.getFilePath(importPath)
-	if err != nil {
-		return []string{}, err
+	foundFiles := r.searchForFiles(importPath)
+	sort.Strings(foundFiles)
+
+	fileList := []string{}
+	for _, filePath := range foundFiles {
+		if r.isDir(filePath) {
+			continue
+		}
+		fileList = append(fileList, filePath)
 	}
 
-	fileListInfo := []string{}
-	if info, err := os.Stat(filePath); err == nil && info.IsDir() {
-		// then we have a directory, get the file list
-		dirList, err := filepath.Glob(path.Join(filePath, "*"))
-		if err != nil {
-			return []string{}, err
-		}
-		for _, filePath := range dirList {
-			if r.isDir(filePath) {
-				continue
-			}
-			fileListInfo = append(fileListInfo, filePath)
-		}
-	} else { // assume its a file, already got stats
-		fileListInfo = append(fileListInfo, filePath)
-	}
-	return fileListInfo, nil
+	return fileList, nil
 }

@@ -152,9 +152,9 @@ func TestBadImport(t *testing.T) {
 	ruleset.SetImportDepth(3)
 	expandedRules, err := ruleset.expandImports(rules, 0)
 
-	assert.Error(t, err, "missing error")
+	assert.NoError(t, err, "unexpected error")
 
-	assert.Equal(t, "", string(expandedRules), "rules do not match")
+	assert.Equal(t, "No import ", string(expandedRules), "rules do not match")
 }
 
 func TestMaxDepthImports(t *testing.T) {
@@ -236,7 +236,7 @@ func TestDirectoryList(t *testing.T) {
 
 	ruleset := new(RuleSet)
 	ruleset.SetImportDepth(3)
-	resultFileList, err := ruleset.getFileList(importDirPath)
+	resultFileList, err := ruleset.getFileList(path.Join(importDirPath, "*"))
 	assert.NoError(t, err, "unknown")
 
 	assert.Equal(t, len(expectedFileList), len(resultFileList))

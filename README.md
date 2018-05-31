@@ -46,11 +46,20 @@ Optionally, instead of using a config file you can specify config entries as env
 `templr` uses the golang [text template engine](https://golang.org/pkg/text/template/) to generate the final ruleset. In addition to the standard [functions](https://golang.org/pkg/text/template/#hdr-Functions), `templr` has a number of helper functions designed to ease the creation of iptable rules. Please refer to the [helper documentation](https://gesquive.github.io/templr/) for a list of helper functions available.
 
 ## Imports
-Other rulesets can be imported by using the `{@ path @}` brackets, where the `path` can be either a full path or relative to the current ruleset path. A single path can be imported per set of brackets. For example:
+Other rulesets can be imported by using the `{@ glob @}` brackets, where the `glob` can be:
+
+ - relative path to file (`../../path/to/file`)
+ - absolute path to file - (`/path/to/file`)
+ - a glob of files - (`*.tr`)
+ - a glob of files in a directory - (`path/to/dir/*`)
+ - a glob of files in multiple directories - (`path/to/dir/*/.tr`)
+
+The specified glob is checked to see if there are file matches under a relative path first, if no relative matches are found the absolute path is checked. When multiple matches are found, they are imported in alphabetical order and delimited by a newline.
+
+A single `glob` can be imported per set of brackets. For example:
 ```yaml
-{@ path/to/file @}
+{@ /path/to/file @}
 ```
-This would result in the contents of `path/to/file` being imported inline into the current ruleset. There is a limit of 100 levels of imports allowed to prevent an infinite import loop.
 
 ## Variables
 In addition, yaml variables can be defined from within a template by using the `{$ $}` brackets. Anything within the brackets will be parsed as yaml and passed to the template as variables. For example:
