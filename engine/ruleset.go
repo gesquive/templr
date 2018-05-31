@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"text/template"
 	"time"
@@ -129,17 +130,31 @@ func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 		importPath := string(bytes.TrimSpace(parts[1]))
 
 		if depth < r.maxImportDepth {
-			importBytes, err := r.getImportFileBytes(importPath)
+			importPaths, err := r.getFileList(importPath)
 			if err != nil {
 				return nil, err
 			}
+			importRules := []byte{}
+			for _, filePath := range importPaths {
+				fileBytes, err := ioutil.ReadFile(filePath)
+				if err != nil {
+					return nil, errors.Wrapf(err, "could not read '%s'", filePath)
+				}
 
-			importRules, err := r.expandImports(importBytes, depth+1)
-			if err != nil {
-				return nil, err
+				fileRules, err := r.expandImports(fileBytes, depth+1)
+				if err != nil {
+					return nil, err
+				}
+				if len(importPaths) > 1 && fileRules[len(fileRules)-1] != '\n' {
+					// when importing files in a directory
+					//  make sure to put a space between the lines
+					importRules = append(importRules, '\n')
+				}
+				importRules = append(importRules, fileRules...)
 			}
 
 			expandedRules = bytes.Replace(expandedRules, parts[0], importRules, 1)
+
 		} else {
 			// we are in too deep, remove the import
 			expandedRules = bytes.Replace(expandedRules, parts[0], []byte(""), 1)
@@ -148,26 +163,50 @@ func (r *RuleSet) expandImports(ruleset []byte, depth uint) ([]byte, error) {
 	return expandedRules, nil
 }
 
-func (r RuleSet) getImportFileBytes(importPath string) ([]byte, error) {
+func (r RuleSet) getFilePath(importPath string) (string, error) {
 	templateDirPath := path.Dir(r.templatePath)
 	relativePath := path.Join(templateDirPath, importPath)
 
-	// first try a relative path
+	// First try a relative path
 	if _, err := os.Stat(relativePath); err == nil {
-		importBytes, err := ioutil.ReadFile(relativePath)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not read import '%s'", relativePath)
-		}
-		return importBytes, nil
+		return relativePath, nil
 	}
-	// second, try the full path
+	// Second, try the full path
 	if _, err := os.Stat(importPath); err == nil {
-		importBytes, err := ioutil.ReadFile(importPath)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not read import '%s'", importPath)
-		}
-		return importBytes, nil
+		return importPath, nil
+	}
+	return "", errors.Errorf("Could not find import path '%s'", importPath)
+}
+
+func (r RuleSet) isDir(filePath string) bool {
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return false
+	}
+	return info.IsDir()
+}
+
+func (r RuleSet) getFileList(importPath string) ([]string, error) {
+	filePath, err := r.getFilePath(importPath)
+	if err != nil {
+		return []string{}, err
 	}
 
-	return nil, errors.Errorf("Could not find import '%s'", importPath)
+	fileListInfo := []string{}
+	if info, err := os.Stat(filePath); err == nil && info.IsDir() {
+		// then we have a directory, get the file list
+		dirList, err := filepath.Glob(path.Join(filePath, "*"))
+		if err != nil {
+			return []string{}, err
+		}
+		for _, filePath := range dirList {
+			if r.isDir(filePath) {
+				continue
+			}
+			fileListInfo = append(fileListInfo, filePath)
+		}
+	} else { // assume its a file, already got stats
+		fileListInfo = append(fileListInfo, filePath)
+	}
+	return fileListInfo, nil
 }

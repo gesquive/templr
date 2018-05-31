@@ -207,6 +207,44 @@ func TestRelativePath(t *testing.T) {
 	assert.Equal(t, string(expectedRules), string(expandedRules), "rules do not match")
 }
 
+func TestDirectoryList(t *testing.T) {
+	importDirPath, err := ioutil.TempDir("", "templr-test")
+	assert.NoError(t, err, "failed to make dir")
+	defer os.RemoveAll(importDirPath) // clean up
+
+	expectedFileList := []string{}
+	fileCount := 3
+	for i := 0; i < fileCount; i++ {
+		fileInfo, err := ioutil.TempFile(importDirPath, "file")
+		assert.NoError(t, err, "")
+		if err != nil {
+			continue
+
+		}
+		expectedFileList = append(expectedFileList, fileInfo.Name())
+	}
+	symlinkPath := path.Join(importDirPath, "link")
+	os.Symlink(expectedFileList[0], symlinkPath)
+	expectedFileList = append(expectedFileList, symlinkPath)
+	for i := 0; i < 3; i++ {
+		tmpDirpath, err := ioutil.TempDir(importDirPath, "dir")
+		assert.NoError(t, err, "error making dir")
+
+		_, err = ioutil.TempFile(tmpDirpath, "file")
+		assert.NoError(t, err, "error making file")
+	}
+
+	ruleset := new(RuleSet)
+	ruleset.SetImportDepth(3)
+	resultFileList, err := ruleset.getFileList(importDirPath)
+	assert.NoError(t, err, "unknown")
+
+	assert.Equal(t, len(expectedFileList), len(resultFileList))
+	for i := range expectedFileList {
+		assert.Contains(t, resultFileList, expectedFileList[i], "expected item not found")
+	}
+}
+
 func writeTempFile(contents []byte) (name string, err error) {
 	fileObj, err := ioutil.TempFile(os.TempDir(), "templr-test")
 	if err != nil {
