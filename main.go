@@ -6,7 +6,7 @@ import (
 	"github.com/gesquive/templr/cmd"
 )
 
-var version = "v0.8.1-git"
+var version = "v1.0.0-git"
 var dirty = ""
 
 func main() {
