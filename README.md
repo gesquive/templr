@@ -1,7 +1,7 @@
 # templr
-[![Travis CI](https://img.templrs.io/travis/gesquive/templr/master.svg?style=flat-square)](https://travis-ci.org/gesquive/templr)
-[![Software License](https://img.templrs.io/badge/License-MIT-orange.svg?style=flat-square)](https://github.com/gesquive/templr/blob/master/LICENSE)
-[![GoDoc](https://img.templrs.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/gesquive/templr)
+[![Travis CI](https://img.shields.io/travis/gesquive/templr/master.svg?style=flat-square)](https://travis-ci.org/gesquive/templr)
+[![Software License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](https://github.com/gesquive/templr/blob/master/LICENSE)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/gesquive/templr)
 
 An iptables firewall manager.
 
@@ -40,7 +40,7 @@ The application looks for a configuration file at the following locations in ord
 If you are planning to run this app as a cron job, it is recommended that you place the config in `/etc/templr/config.yml`.
 
 ### Environment Variables
-Optionally, instead of using a config file you can specify config entries as environment variables. Use the prefix "templr_" in front of the uppercased variable name. For example, the config variable `ipv4-only` would be the environment variable `templr_IPV4_ONLY`.
+Optionally, instead of using a config file you can specify config entries as environment variables. Use the prefix "TEMPLR_" in front of the uppercased variable name. For example, the config variable `ipv4-only` would be the environment variable `TEMPLR_IPV4_ONLY`.
 
 ### Firewall Rules
 `templr` uses the golang [text template engine](https://golang.org/pkg/text/template/) to generate the final ruleset. In addition to the standard [functions](https://golang.org/pkg/text/template/#hdr-Functions), `templr` has a number of helper functions designed to ease the creation of iptable rules. Please refer to the [helper documentation](https://gesquive.github.io/templr/) for a list of helper functions available.
